@@ -711,7 +711,15 @@ button:active { transform: scale(.97); }
   #btn-remove   { grid-column: 1; }
   #btn-debug-addr { grid-column: 2; }
 
-  /* Map */
+  /* Map: mepet ke tepi card (negative margin breakout) */
+  .map-section {
+    margin-left: -12px;
+    margin-right: -12px;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    border-radius: 0;
+  }
   #map { height: 280px; }
   .map-header { padding: 8px 12px; font-size: .82rem; }
   .map-hint { display: none; }
@@ -749,7 +757,7 @@ button:active { transform: scale(.97); }
 }
 
 /* ── LANDSCAPE MOBILE (HP diputar) ──────────── */
-@media (orientation: landscape) and (max-height: 500px) {
+@media (orientation: landscape) and (max-height: 600px) {
   main { padding: 0 6px; margin: 6px auto; gap: 8px; }
 
   .card { padding: 10px 0; border-radius: 8px; }
