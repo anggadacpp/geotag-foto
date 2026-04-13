@@ -339,7 +339,7 @@ async function overpassPost(query) {
 
   const attempt = (ep) => new Promise((resolve, reject) => {
     const ctrl  = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 4000); // 4 detik max
+    const timer = setTimeout(() => ctrl.abort(), 2000); // 2 detik max
     fetch(ep, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
