@@ -82,6 +82,9 @@ function initMap(lat, lng) {
   map.on('click', (e) => {
     applyCoords(e.latlng.lat, e.latlng.lng, true);
   });
+
+  // Pastikan tile muncul di HP (container mungkin belum sepenuhnya di-render)
+  setTimeout(() => map.invalidateSize(), 200);
 }
 
 function updateMarker(lat, lng) {
@@ -823,6 +826,9 @@ function selectPhoto(idx) {
     updateGoogleMapsLink(photo.lat, photo.lng);
     if (map) map.invalidateSize();
   }, 80);
+  // Panggil lagi setelah delay lebih panjang untuk HP (render lebih lambat)
+  setTimeout(() => { if (map) map.invalidateSize(); }, 350);
+  setTimeout(() => { if (map) map.invalidateSize(); }, 700);
 }
 
 // ──────────────────────────────────────────────
@@ -1511,4 +1517,13 @@ async function doMapSearch() {
 document.addEventListener('DOMContentLoaded', () => {
   initDragDrop();
   bindEvents();
+});
+
+// Saat orientasi berubah (portrait ↔ landscape), paksa Leaflet resize
+window.addEventListener('orientationchange', () => {
+  setTimeout(() => { if (map) map.invalidateSize(); }, 300);
+  setTimeout(() => { if (map) map.invalidateSize(); }, 700);
+});
+window.addEventListener('resize', () => {
+  if (map) map.invalidateSize();
 });

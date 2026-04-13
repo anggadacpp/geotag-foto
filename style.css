@@ -747,3 +747,87 @@ button:active { transform: scale(.97); }
   /* Sembunyikan map control geocoder bawaan Leaflet (sudah ada search bar kustom) */
   .leaflet-control-geocoder { display: none; }
 }
+
+/* ── LANDSCAPE MOBILE (HP diputar) ──────────── */
+@media (orientation: landscape) and (max-height: 500px) {
+  main { padding: 0 6px; margin: 6px auto; gap: 8px; }
+
+  .card { padding: 10px 0; border-radius: 8px; }
+  .card h2 { padding: 0 12px 8px; margin-bottom: 8px; }
+
+  /* Layout 1 kolom di landscape HP */
+  .editor-layout { grid-template-columns: 1fr; gap: 8px; }
+  .map-col { display: none !important; }
+
+  /* Photo list horizontal */
+  .photo-list {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    max-height: none;
+    gap: 8px;
+    padding: 0 12px 6px;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+  }
+  .photo-card {
+    flex-direction: column;
+    align-items: center;
+    min-width: 80px;
+    max-width: 80px;
+    padding: 6px 5px;
+    scroll-snap-align: start;
+    gap: 4px;
+  }
+  .photo-thumb { width: 56px; height: 56px; }
+  .photo-info .meta { display: none; }
+
+  /* Preview & form */
+  .photo-preview-wrap { max-height: 180px; }
+  #preview-img { max-height: 180px; }
+  .form-grid { grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+  .form-group input, .form-group textarea { padding: 8px 10px; min-height: 38px; font-size: .88rem; }
+
+  /* Action bar */
+  .action-bar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    padding: 0 12px;
+    margin-bottom: 8px;
+  }
+  .action-bar button { padding: 9px 6px; font-size: .78rem; min-height: 40px; }
+  #btn-save     { grid-column: 1; }
+  #btn-download { grid-column: 2; }
+  #btn-gps      { grid-column: 1; }
+  #btn-geocode  { grid-column: 2; }
+  #btn-remove   { grid-column: 1; }
+  #btn-debug-addr { grid-column: 2; }
+
+  /* MAP: mepet ke tepi card */
+  .map-section {
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    border-radius: 0;
+  }
+  .map-header { padding: 6px 12px; font-size: .8rem; }
+  .map-hint { display: none; }
+  .map-search-bar { padding: 6px 10px; gap: 6px; }
+  .map-search-bar input { font-size: .82rem; padding: 8px 10px; min-height: 38px; }
+  .map-search-bar .btn-primary { padding: 8px 12px; font-size: .8rem; }
+  #map { height: 240px; width: 100%; }
+
+  /* Bottom bar */
+  .bottom-bar {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 0 12px 10px;
+  }
+  .bottom-bar button { flex: 1; min-width: 130px; padding: 10px 8px; font-size: .8rem; min-height: 40px; }
+
+  .leaflet-control-geocoder { display: none; }
+}
