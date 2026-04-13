@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aplikasi Geotag Foto</title>
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <!-- Leaflet Geocoder CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header>
+    <div class="header-inner">
+      <span class="logo">📍 GeoTag Foto</span>
+      <span class="subtitle">Tambahkan lokasi GPS pada foto Anda</span>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- UPLOAD SECTION -->
+    <section class="card" id="upload-section">
+      <h2>1. Upload Foto</h2>
+      <div class="drop-zone" id="drop-zone">
+        <div class="drop-icon">🖼️</div>
+        <p>Seret & lepas foto di sini, atau</p>
+        <label class="btn-primary" for="file-input">Pilih Foto</label>
+        <input type="file" id="file-input" accept="image/*" multiple hidden />
+        <p class="hint">Format: JPEG, PNG, WEBP · Bisa beberapa file sekaligus</p>
+      </div>
+    </section>
+
+    <!-- FOTO LIST & EDITOR -->
+    <section class="card" id="editor-section" style="display:none;">
+      <h2>2. Foto & Geotag</h2>
+
+      <div class="editor-layout">
+
+        <!-- Daftar foto -->
+        <div class="photo-list" id="photo-list"></div>
+
+        <!-- Detail editor -->
+        <div class="detail-panel" id="detail-panel">
+          <div class="empty-state" id="empty-hint">← Pilih foto dari daftar</div>
+
+          <div id="editor-form" style="display:none;">
+            <div class="photo-preview-wrap">
+              <img id="preview-img" src="" alt="Preview" />
+              <div class="photo-overlay" id="photo-overlay" style="display:none;">
+                <div class="overlay-panel">
+                  <div class="overlay-info-col">
+                    <div id="overlay-datetime" class="overlay-datetime"></div>
+                    <div id="overlay-coords" class="overlay-coords"></div>
+                    <div id="overlay-village" class="overlay-loc-line"></div>
+                    <div id="overlay-kecamatan" class="overlay-loc-line"></div>
+                    <div id="overlay-kabupaten" class="overlay-loc-line"></div>
+                    <div id="overlay-province" class="overlay-loc-line"></div>
+                    <div id="overlay-speed" class="overlay-detail"></div>
+                    <div id="overlay-org" class="overlay-org"></div>
+                  </div>
+                </div>
+                <div class="overlay-map-col">
+                  <div id="photo-minimap"></div>
+                  <span class="overlay-google-label">Google</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Nama File</label>
+                <input type="text" id="field-name" readonly />
+              </div>
+              <div class="form-group">
+                <label>Waktu (Timestamp)</label>
+                <input type="datetime-local" id="field-datetime" />
+              </div>
+              <div class="form-group">
+                <label>Latitude</label>
+                <input type="number" id="field-lat" step="any" placeholder="-6.200000" />
+              </div>
+              <div class="form-group">
+                <label>Longitude</label>
+                <input type="number" id="field-lng" step="any" placeholder="106.816666" />
+              </div>
+              <div class="form-group full-width">
+                <label>Alamat / Lokasi</label>
+                <input type="text" id="field-address" placeholder="Alamat akan terisi otomatis dari koordinat..." />
+              </div>
+              <div class="form-group full-width">
+                <label>Catatan</label>
+                <textarea id="field-note" rows="2" placeholder="Tuliskan catatan opsional..."></textarea>
+              </div>
+              <div class="form-group">
+                <label>Kecepatan (km/h)</label>
+                <input type="number" id="field-speed" step="any" placeholder="0.0" />
+              </div>
+              <div class="form-group full-width">
+                <label>Nama Instansi</label>
+                <input type="text" id="field-org" placeholder="Contoh: BPBD KAB. GROBOGAN" />
+              </div>
+            </div>
+
+            <div class="action-bar">
+              <button class="btn-secondary" id="btn-gps">📡 Deteksi GPS Saya</button>
+              <button class="btn-secondary" id="btn-geocode">🔍 Cari Alamat dari Koordinat</button>
+              <button class="btn-primary" id="btn-save">💾 Simpan Geotag</button>
+              <button class="btn-success" id="btn-download">⬇️ Unduh Foto</button>
+              <button class="btn-danger" id="btn-remove">🗑️ Hapus Foto</button>
+              <button class="btn-debug" id="btn-debug-addr" title="Lihat field mentah dari Nominatim">🔬 Debug Alamat</button>
+            </div>
+
+            <!-- MAP -->
+            <div class="map-section">
+              <div class="map-header">
+                <span>🗺️ Peta Lokasi</span>
+                <div class="map-header-actions">
+                  <span class="map-hint">Klik pada peta untuk mengatur koordinat</span>
+                  <a id="btn-open-gmaps" class="btn-gmaps" href="#" target="_blank" rel="noopener noreferrer" style="display:none;">
+                    <img src="https://maps.google.com/mapfiles/ms/icons/red-dot.png" width="14" height="14" alt="" />
+                    Buka di Google Maps
+                  </a>
+                </div>
+              </div>
+              <div class="map-search-bar">
+                <input type="text" id="map-search-input" placeholder="🔍 Cari desa, kecamatan, kota..." autocomplete="off" />
+                <button class="btn-primary" id="btn-map-search">Cari</button>
+              </div>
+              <div id="map-search-results" class="map-search-dropdown" style="display:none;"></div>
+              <div id="map"></div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Tombol bawah -->
+      <div class="bottom-bar">
+        <button class="btn-secondary" id="btn-gps-all">📡 GPS Otomatis Semua Foto</button>
+        <button class="btn-primary" id="btn-export-all">📥 Export Semua sebagai JSON</button>
+        <button class="btn-success" id="btn-print">🖨️ Cetak Laporan</button>
+      </div>
+    </section>
+
+    <!-- HASIL / LAPORAN -->
+    <section class="card" id="report-section" style="display:none;">
+      <h2>3. Laporan Geotag</h2>
+      <div id="report-content"></div>
+    </section>
+
+  </main>
+
+  <!-- MODAL SEARCH LOCATION -->
+  <div class="modal-overlay" id="modal-search" style="display:none;">
+    <div class="modal">
+      <h3>Cari Lokasi</h3>
+      <div class="search-bar">
+        <input type="text" id="search-input" placeholder="Ketik nama tempat, alamat..." />
+        <button class="btn-primary" id="btn-do-search">Cari</button>
+      </div>
+      <div id="search-results"></div>
+      <button class="btn-secondary modal-close" id="btn-close-modal">Tutup</button>
+    </div>
+  </div>
+
+  <!-- MODAL DEBUG ALAMAT -->
+  <div class="modal-overlay" id="modal-debug" style="display:none;">
+    <div class="modal modal-wide">
+      <h3>🔬 Field Mentah Nominatim</h3>
+      <p style="font-size:.82rem;color:#64748b;margin-bottom:12px;">
+        Berikut semua field yang dikembalikan Nominatim untuk koordinat ini. Gunakan ini untuk mengetahui field mana yang berisi desa/dusun di lokasi Anda.
+      </p>
+      <div id="debug-table" style="max-height:360px;overflow-y:auto;font-size:.85rem;"></div>
+      <button class="btn-secondary modal-close" id="btn-close-debug" style="margin-top:14px;">Tutup</button>
+index.html:211 Live reload enabled.
+overpass-api.de/api/interpreter:1  Failed to load resource: the server responded with a status of 504 (Gateway Timeout)
+    </div>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Leaflet Geocoder -->
+  <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+  <!-- EXIF.js untuk membaca metadata EXIF -->
+  <script src="https://cdn.jsdelivr.net/npm/exif-js@2.3.0/exif.js"></script>
+
+  <script src="app.js"></script>
+</body>
+</html>
