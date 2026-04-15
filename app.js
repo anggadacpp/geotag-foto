@@ -220,8 +220,7 @@ function formatOverlayDate(isoStr) {
   const year = d.getFullYear();
   const hh   = String(d.getHours()).padStart(2, '0');
   const mm   = String(d.getMinutes()).padStart(2, '0');
-  const ss   = String(d.getSeconds()).padStart(2, '0');
-  return `${day} ${mon} ${year} ${hh}:${mm}:${ss}`;
+  return `${day} ${mon} ${year} ${hh}:${mm}`;
 }
 
 // Konversi desimal ke DMS, misal: -7.071213 → "7°4'16.36452\"S"
@@ -1112,14 +1111,24 @@ async function buildMapTileImage(lat, lng, pixelW, pixelH) {
   // Pixel posisi lat/lng di canvas 3×3
   const cx = (lngF * n - tX + 1) * TILE;
   const cy = (latF * n - tY + 1) * TILE;
-  const sx = Math.round(cx - pixelW / 2);
-  const sy = Math.round(cy - pixelH / 2);
+
+  // Crop sebesar yang muat di dalam tmp (768×768), lalu scale ke pixelW×pixelH
+  const srcW  = TILE * 3;
+  const srcH  = TILE * 3;
+  const cropW = Math.min(pixelW, srcW);
+  const cropH = Math.min(pixelH, srcH);
+  let sx = Math.round(cx - cropW / 2);
+  let sy = Math.round(cy - cropH / 2);
+  // Pastikan tidak keluar batas sumber
+  sx = Math.max(0, Math.min(sx, srcW - cropW));
+  sy = Math.max(0, Math.min(sy, srcH - cropH));
 
   const out  = document.createElement('canvas');
   out.width  = pixelW;
   out.height = pixelH;
   const oCtx = out.getContext('2d');
-  oCtx.drawImage(tmp, sx, sy, pixelW, pixelH, 0, 0, pixelW, pixelH);
+  // Scale crop ke ukuran output penuh → selalu mepet tanpa area kosong
+  oCtx.drawImage(tmp, sx, sy, cropW, cropH, 0, 0, pixelW, pixelH);
 
   // Marker merah di tengah
   const mx = Math.round(pixelW / 2);
