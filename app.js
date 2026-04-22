@@ -813,7 +813,7 @@ function selectPhoto(idx) {
   document.getElementById('field-address').value  = photo.address;
   document.getElementById('field-note').value     = photo.note;
   document.getElementById('field-speed').value = photo.speed != null ? photo.speed.toFixed(1) : '';
-  document.getElementById('field-org').value      = photo.org || localStorage.getItem('geotag_org') || '';
+  document.getElementById('field-org').value      = photo.org != null ? photo.org : (localStorage.getItem('geotag_org') || '');
 
   updateOverlay(photo);
 
@@ -860,7 +860,11 @@ async function saveGeotag() {
   photo.note     = note;
   photo.speed    = parseFloat(document.getElementById('field-speed').value) || null;
   photo.org      = document.getElementById('field-org').value.trim();
-  if (photo.org) localStorage.setItem('geotag_org', photo.org);
+  if (photo.org) {
+    localStorage.setItem('geotag_org', photo.org);
+  } else {
+    localStorage.removeItem('geotag_org');
+  }
 
   // Jika koordinat berubah, ambil ulang alamat otomatis
   if (coordsChanged) {

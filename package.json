@@ -1,0 +1,9 @@
+{
+  "name": "geotag-foto",
+  "version": "1.0.0",
+  "description": "Aplikasi GeoTag Foto",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "private": true
+}
