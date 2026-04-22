@@ -699,10 +699,10 @@ function updateOverlay(photo) {
   const spd = photo.speed != null ? photo.speed : 0;
   document.getElementById('overlay-speed').textContent = `Speed:${parseFloat(spd.toFixed(1))}km/h`;
 
-  // Nama instansi
-  const orgField = document.getElementById('field-org');
-  const orgName  = (orgField ? orgField.value.trim() : '') || photo.org || localStorage.getItem('geotag_org') || '';
-  document.getElementById('overlay-org').textContent = orgName.toUpperCase();
+  // Keterangan
+  const ketField = document.getElementById('field-keterangan');
+  const ketName  = (ketField ? ketField.value.trim() : '') || photo.keterangan || '';
+  document.getElementById('overlay-org').textContent = ketName.toUpperCase();
 
   // Update mini-map
   updateMiniMap(photo.lat, photo.lng);
@@ -742,7 +742,7 @@ async function addPhotos(files) {
       note:     '',
       altitude: null,
       speed:    null,
-      org:      localStorage.getItem('geotag_org') || '',
+      keterangan: '',
       tagged:   exif.lat != null && exif.lng != null,
     };
 
@@ -829,7 +829,7 @@ function selectPhoto(idx) {
   document.getElementById('field-address').value  = photo.address;
   document.getElementById('field-note').value     = photo.note;
   document.getElementById('field-speed').value = photo.speed != null ? photo.speed.toFixed(1) : '';
-  document.getElementById('field-org').value      = photo.org != null ? photo.org : (localStorage.getItem('geotag_org') || '');
+  document.getElementById('field-keterangan').value = photo.keterangan || '';
 
   updateOverlay(photo);
 
@@ -876,12 +876,7 @@ async function saveGeotag() {
   photo.datetime = dt ? new Date(dt).toISOString() : photo.datetime;
   photo.note     = note;
   photo.speed    = parseFloat(document.getElementById('field-speed').value) || null;
-  photo.org      = document.getElementById('field-org').value.trim();
-  if (photo.org) {
-    localStorage.setItem('geotag_org', photo.org);
-  } else {
-    localStorage.removeItem('geotag_org');
-  }
+  photo.keterangan = document.getElementById('field-keterangan').value.trim();
 
   // Jika koordinat berubah atau diketik ulang manual, ambil ulang alamat otomatis
   if (coordsChanged) {
@@ -1028,8 +1023,8 @@ async function downloadPhoto() {
   const coordStr = decimalToDMSString(photo.lat, photo.lng);
   const addrPts  = parseAddressParts(photo.address);
   const spd      = photo.speed != null ? photo.speed : 0;
-  const orgEl    = document.getElementById('field-org');
-  const orgRaw   = (orgEl ? orgEl.value.trim() : '') || photo.org || localStorage.getItem('geotag_org') || '';
+  const orgEl    = document.getElementById('field-keterangan');
+  const orgRaw   = (orgEl ? orgEl.value.trim() : '') || photo.keterangan || '';
   const orgName  = orgRaw.toUpperCase();
 
   const lines = [
@@ -1445,8 +1440,8 @@ function bindEvents() {
     }
   });
 
-  // Nama instansi – update overlay langsung saat mengetik
-  document.getElementById('field-org').addEventListener('input', () => {
+  // Keterangan – update overlay langsung saat mengetik
+  document.getElementById('field-keterangan').addEventListener('input', () => {
     const photo = getActive();
     if (photo) updateOverlay(photo);
   });
