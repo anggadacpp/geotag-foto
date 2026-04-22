@@ -653,6 +653,7 @@ async function applyCoords(lat, lng, doReverseGeocode) {
     document.getElementById('field-address').value = addr;
     updateOverlay(photo);
     updateGoogleMapsLink(lat, lng);
+    _coordsManuallyChanged = false;
   }
 }
 
@@ -843,7 +844,8 @@ async function saveGeotag() {
   const note = document.getElementById('field-note').value.trim();
 
   const coordsChanged = !isNaN(lat) && !isNaN(lng) &&
-    (photo.lat == null || Math.abs(photo.lat - lat) > 0.00001 || Math.abs(photo.lng - lng) > 0.00001);
+    (_coordsManuallyChanged ||
+      photo.lat == null || Math.abs(photo.lat - lat) > 0.00001 || Math.abs(photo.lng - lng) > 0.00001);
 
   if (!isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
     photo.lat = lat;
@@ -866,8 +868,9 @@ async function saveGeotag() {
     localStorage.removeItem('geotag_org');
   }
 
-  // Jika koordinat berubah, ambil ulang alamat otomatis
+  // Jika koordinat berubah atau diketik ulang manual, ambil ulang alamat otomatis
   if (coordsChanged) {
+    _coordsManuallyChanged = false;
     document.getElementById('field-address').value = '⏳ Mengambil alamat...';
     toast('Koordinat berubah, mengambil alamat baru...', 'info', 3000);
     const newAddr = await reverseGeocode(lat, lng);
@@ -1306,7 +1309,10 @@ function removePhoto() {
 // ──────────────────────────────────────────────
 // KOORDINAT MANUAL UPDATE (live update marker)
 // ──────────────────────────────────────────────
+let _coordsManuallyChanged = false;
+
 function onCoordsInput() {
+  _coordsManuallyChanged = true;
   const lat = parseFloat(document.getElementById('field-lat').value);
   const lng = parseFloat(document.getElementById('field-lng').value);
   if (!isNaN(lat) && !isNaN(lng) && map) {
