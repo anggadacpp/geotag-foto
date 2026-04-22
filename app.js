@@ -366,7 +366,7 @@ async function reverseGeocode(lat, lng) {
   const lngR = parseFloat(lng.toFixed(6));
 
   // Jalankan Overpass dan Nominatim PARALEL
-  const [overpassData, nominatimResult] = await Promise.all([
+  const [overpassData, nominatimData] = await Promise.all([
     (async () => {
       try {
         const query =
@@ -383,8 +383,11 @@ async function reverseGeocode(lat, lng) {
         return [];
       }
     })(),
-    reverseGeocodeWithNominatim(lat, lng).catch(() => ''),
+    reverseGeocodeWithNominatim(lat, lng).catch(() => ({ formatted: '', raw: {} })),
   ]);
+
+  const nominatimResult = nominatimData.formatted;
+  const nominatimRaw    = nominatimData.raw || {};
 
   // Proses hasil Overpass
   let overpassResult = '';
@@ -405,9 +408,21 @@ async function reverseGeocode(lat, lng) {
     // Sisipkan kecamatan dari Nominatim ke hasil Overpass
     const parts = overpassResult.split(', ');
     const nomParts = nominatimResult.split(', ');
-    const kecNom = nomParts.find(p => /^kec\./i.test(p) || /^kecamatan\s/i.test(p));
+    let kecNom = nomParts.find(p => /^kec\./i.test(p) || /^kecamatan\s/i.test(p));
+
+    // Jika tidak ditemukan di formatted string, cari langsung di raw field Nominatim
+    if (!kecNom) {
+      const { a10 = {}, a12 = {}, a13 = {}, a14 = {}, a18 = {} } = nominatimRaw;
+      const kecRaw =
+        a13.city_district || a14.city_district || a12.city_district || a18.city_district ||
+        a13.district      || a14.district      || a12.district      || a18.district      || a10.district ||
+        a13.subdistrict   || a14.subdistrict   || a12.subdistrict   ||
+        a13.municipality  || a14.municipality  || a12.municipality  ||
+        a13.state_district|| a14.state_district;
+      if (kecRaw) kecNom = 'Kec. ' + kecRaw.replace(/^(kecamatan|kec\.?)\s*/i, '').trim();
+    }
+
     if (kecNom && parts.length >= 2) {
-      // Sisipkan setelah desa (bagian pertama)
       parts.splice(1, 0, kecNom);
       return parts.join(', ');
     }
@@ -535,7 +550,8 @@ async function reverseGeocodeWithNominatim(lat, lng) {
   state._lastRawAddressType = 'nominatim';
   console.log('[GeoTag] Nominatim z10:', a10, '| z12:', a12, '| z13:', a13, '| z14:', a14, '| z18:', a18);
 
-  return buildAddressNominatim(a10, a12, a13, a14, a18) || r18.display_name || r14.display_name || '';
+  const formatted = buildAddressNominatim(a10, a12, a13, a14, a18) || r18.display_name || r14.display_name || '';
+  return { formatted, raw: { a10, a12, a13, a14, a18 } };
 }
 
 function buildAddressNominatim(a10, a12, a13, a14, a18) {
@@ -550,18 +566,17 @@ function buildAddressNominatim(a10, a12, a13, a14, a18) {
     parts.push((isKel ? 'Kel. ' : 'Desa ') + desa);
   }
 
-  // Kecamatan — hanya dari field yang benar-benar bermakna kecamatan
-  // (town diabaikan — bisa kota mana saja, bukan nama kecamatan)
+  // Kecamatan — cek banyak field karena OSM Indonesia tidak konsisten
   const kec =
-    a13.municipality || a13.subdistrict || a13.district || a13.state_district ||
+    a13.municipality || a13.subdistrict || a13.district || a13.city_district || a13.state_district ||
     (a13.city && (a13.county || a13.regency) ? a13.city : null) ||
-    a12.municipality || a12.subdistrict || a12.district || a12.state_district ||
-    (a12.city && (a12.county || a12.regency) ? a12.city : null) ||
-    a14.municipality || a14.subdistrict || a14.district || a14.state_district ||
+    a14.municipality || a14.subdistrict || a14.district || a14.city_district || a14.state_district ||
     (a14.city && (a14.county || a14.regency) ? a14.city : null) ||
-    a18.municipality || a18.subdistrict ||
-    a10.municipality || a10.subdistrict;
-  if (kec) parts.push('Kec. ' + kec);
+    a12.municipality || a12.subdistrict || a12.district || a12.city_district || a12.state_district ||
+    (a12.city && (a12.county || a12.regency) ? a12.city : null) ||
+    a18.municipality || a18.subdistrict || a18.district || a18.city_district ||
+    a10.municipality || a10.subdistrict || a10.district || a10.city_district;
+  if (kec) parts.push('Kec. ' + kec.replace(/^(kecamatan|kec\.?)\s*/i, '').trim());
 
   // Kabupaten — dari zoom=10 paling andal
   const kabkota = a10.county || a10.regency || a12.county || a12.regency ||
